@@ -13,21 +13,22 @@
 <meta name="twitter:card" content="summary">
 <style>
   :root {
-    --bg: #fffefb;
-    --fg: #1a1a1a;
-    --muted: #6b6b6b;
-    --rule: #e6e3dc;
-    --accent: #8a5a2b;
-    --code-bg: #f3f1ec;
+    --bg: #fffdf8;
+    --fg: #232020;
+    --muted: #76716a;
+    --rule: #e7e3d9;
+    --accent: #9a5a28;
+    --code-bg: #f2efe8;
+    --maxw: 44rem;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #16161a;
-      --fg: #e6e4df;
-      --muted: #9a988f;
-      --rule: #2c2c33;
-      --accent: #d2a679;
-      --code-bg: #23232a;
+      --bg: #15151a;
+      --fg: #e9e6df;
+      --muted: #9c988e;
+      --rule: #2b2b33;
+      --accent: #e0ad7e;
+      --code-bg: #222229;
     }
   }
   * { box-sizing: border-box; }
@@ -36,61 +37,97 @@
     margin: 0;
     background: var(--bg);
     color: var(--fg);
-    font-family: Charter, Georgia, Cambria, "Times New Roman", serif;
-    font-size: 1.18rem;
-    line-height: 1.65;
+    font-family: Charter, "Iowan Old Style", Georgia, Cambria, serif;
+    font-size: 1.2rem;
+    line-height: 1.72;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   main {
-    max-width: 40rem;
+    max-width: var(--maxw);
     margin: 0 auto;
-    padding: 4.5rem 1.25rem 6rem;
+    padding: 5.5rem 1.5rem 7rem;
+  }
+  .meta {
+    font-family: ui-sans-serif, -apple-system, system-ui, sans-serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 1.4rem;
   }
   h1 {
-    font-size: 1.95rem;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
-    margin: 0 0 1.6rem;
+    font-size: 2.55rem;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+    font-weight: 700;
+  }
+  .dek {
+    font-size: 1.34rem;
+    line-height: 1.45;
+    color: var(--muted);
+    margin: 0 0 3rem;
+    font-style: italic;
   }
   h2 {
-    font-size: 1.32rem;
+    font-size: 1.5rem;
     line-height: 1.25;
-    margin: 2.8rem 0 0.6rem;
+    letter-spacing: -0.01em;
+    margin: 3.3rem 0 0.8rem;
   }
-  p { margin: 0 0 1.25rem; }
-  a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  p { margin: 0 0 1.4rem; }
+  .lead { font-size: 1.34rem; line-height: 1.6; }
+  .lead::first-letter {
+    float: left;
+    font-size: 3.9rem;
+    line-height: 0.78;
+    padding: 0.06em 0.09em 0 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; text-decoration-thickness: 1px; }
   blockquote {
-    margin: 1.6rem 0;
-    padding: 0.4rem 0 0.4rem 1.1rem;
-    border-left: 3px solid var(--rule);
+    margin: 1.8rem 0;
+    padding: 0.3rem 0 0.3rem 1.3rem;
+    border-left: 3px solid var(--accent);
     color: var(--muted);
     font-style: italic;
   }
-  ul { margin: 0 0 1.25rem; padding-left: 1.3rem; }
-  li { margin: 0 0 0.4rem; }
+  ul { margin: 0 0 1.4rem; padding-left: 1.4rem; }
+  li { margin: 0 0 0.5rem; }
   code {
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 0.82em;
+    font-size: 0.8em;
     background: var(--code-bg);
-    padding: 0.12em 0.36em;
+    padding: 0.14em 0.4em;
     border-radius: 4px;
   }
   hr {
     border: none;
     border-top: 1px solid var(--rule);
-    margin: 3rem 0 1.6rem;
+    margin: 3.5rem 0 1.8rem;
   }
-  .byline { color: var(--muted); font-style: italic; font-size: 0.98rem; }
-  .subtitle { color: var(--muted); font-size: 1.05rem; margin: -1rem 0 2.4rem; }
+  .byline { color: var(--muted); font-style: italic; font-size: 1rem; }
+  @media (max-width: 36rem) {
+    main { padding: 3.5rem 1.25rem 5rem; }
+    h1 { font-size: 2rem; }
+    .dek { font-size: 1.18rem; }
+    body { font-size: 1.12rem; }
+  }
 </style>
 </head>
 <body>
 <main>
 <article>
 
+<p class="meta">Gil Portnoy · about a 9 minute read</p>
+
 <h1>Why I built my own coding agent, and why you probably shouldn't</h1>
 
-<p>Last month I almost shipped a use-after-free that wasn't there.</p>
+<p class="dek">The model is rented and it gets better on its own. The part I build is the part I can read, and that turned out to be the only part I can trust.</p>
+
+<p class="lead">Last month I almost shipped a use-after-free that wasn't there.</p>
 
 <p>I was auditing reference counting in a filesystem driver, and one path looked like it freed an object and then went on to touch it again. A textbook use-after-free. I had the write-up half done. The whole thing turned on a single byte, an opcode I had read as "release." The thing is, I hadn't actually read it from the binary. I read it from a map someone else had built (a table of opcode values to their meanings), and the table said release.</p>
 
