@@ -109,8 +109,8 @@
   }
   .rail a {
     display: flex; align-items: center; gap: 0.7rem;
-    padding: 0.28rem 0; text-decoration: none; color: var(--faint);
-    transition: color .15s ease;
+    padding: 0.28rem 0; text-decoration: none; color: var(--muted);
+    opacity: 0.55; transition: color .15s ease, opacity .15s ease;
   }
   .rail .tick {
     width: 1.5rem; height: 2px; background: currentColor; border-radius: 2px;
@@ -121,9 +121,9 @@
     opacity: 0; transform: translateX(-4px);
     transition: opacity .18s ease, transform .18s ease; white-space: nowrap;
   }
-  .rail a:hover { color: var(--muted); }
+  .rail a:hover { opacity: 1; }
   .rail:hover .label { opacity: 1; transform: none; }
-  .rail a.active { color: var(--fg); }
+  .rail a.active { color: var(--fg); opacity: 1; }
   .rail a.active .tick { width: 2.5rem; }
   .rail a.active .label { opacity: 1; transform: none; }
 
@@ -175,7 +175,7 @@
   .site-footer-inner a:hover { color: var(--fg); }
   .footer-links { display: flex; gap: 1.4rem; flex-wrap: wrap; }
 
-  @media (min-width: 1080px) { .rail { display: flex; } }
+  @media (min-width: 980px) { .rail { display: flex; } }
   @media (max-width: 36rem) {
     body { font-size: 1.18rem; }
     h1 { font-size: 2.05rem; }
