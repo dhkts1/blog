@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>למה בניתי לעצמי סוכן קוד, ולמה אתם כנראה לא צריכים</title>
+<meta name="description" content="המודל שכור, והוא משתפר מעצמו. החלק שאני בונה הוא החלק שאני יכול לקרוא, וזה התברר כחלק היחיד שאני יכול לתת בו אמון.">
+<meta name="author" content="Gil Portnoy">
+<meta property="og:type" content="article">
+<meta property="og:title" content="למה בניתי לעצמי סוכן קוד, ולמה אתם כנראה לא צריכים">
+<meta property="og:description" content="המודל שכור, והוא משתפר מעצמו. החלק שאני בונה הוא החלק שאני יכול לקרוא, וזה התברר כחלק היחיד שאני יכול לתת בו אמון.">
+<meta property="og:url" content="https://dhkts1.github.io/blog/he/">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700&family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem("theme");
+      if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  })();
+</script>
+<style>
+  :root {
+    --bg: #faf8f3; --fg: #242424; --muted: #6e6a62; --faint: #b6b0a4;
+    --rule: #e7e2d6; --code-bg: #efeae0;
+    --sans: "Heebo", "Assistant", -apple-system, system-ui, sans-serif;
+    --serif: "Frank Ruhl Libre", "David Libre", Georgia, serif;
+  }
+  :root[data-theme="dark"] {
+    --bg: #15151a; --fg: #e9e6e0; --muted: #9f9a91; --faint: #54515b;
+    --rule: #2c2c33; --code-bg: #24242b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15151a; --fg: #e9e6e0; --muted: #9f9a91; --faint: #54515b;
+      --rule: #2c2c33; --code-bg: #24242b;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: var(--serif); font-size: 1.34rem; line-height: 1.72;
+    word-spacing: 0.04em; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  }
+  .progress-top {
+    position: fixed; top: 0; inset-inline-start: 0; height: 3px; width: 0%;
+    background: var(--fg); opacity: 0.55; z-index: 60; transition: width 0.08s linear;
+  }
+  .site-header { border-bottom: 1px solid var(--rule); }
+  .site-header-inner {
+    max-width: 920px; margin: 0 auto; padding: 1.15rem 1.75rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-family: var(--sans);
+  }
+  .brand { font-weight: 700; font-size: 1.05rem; color: var(--fg); text-decoration: none; }
+  .nav { display: flex; align-items: center; gap: 1.25rem; }
+  .nav a { font-size: 0.98rem; color: var(--muted); text-decoration: none; }
+  .nav a:hover { color: var(--fg); }
+  .nav .lang { border: 1px solid var(--rule); border-radius: 999px; padding: 0.18rem 0.6rem; }
+  .theme-toggle {
+    width: 2.2rem; height: 2.2rem; display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; color: var(--muted); border: 1px solid var(--rule); border-radius: 999px;
+    cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color .15s ease, border-color .15s ease;
+  }
+  .theme-toggle:hover { color: var(--fg); border-color: var(--muted); }
+  .theme-toggle svg { display: block; }
+  .icon-sun { display: none; } .icon-moon { display: block; }
+  :root[data-theme="dark"] .icon-sun { display: block; }
+  :root[data-theme="dark"] .icon-moon { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .icon-sun { display: block; }
+    :root:not([data-theme="light"]) .icon-moon { display: none; }
+  }
+  .rail {
+    position: fixed; top: 50%; inset-inline-start: 2.2rem; transform: translateY(-50%);
+    display: none; flex-direction: column; gap: 0.05rem; font-family: var(--sans); z-index: 40;
+  }
+  .rail a {
+    display: flex; align-items: center; gap: 0.7rem; padding: 0.28rem 0;
+    text-decoration: none; color: var(--muted); opacity: 0.55; transition: color .15s ease, opacity .15s ease;
+  }
+  .rail .tick { width: 1.5rem; height: 2px; background: currentColor; border-radius: 2px; flex: none; transition: width .18s ease; }
+  .rail .label { font-size: 0.82rem; opacity: 0; transition: opacity .18s ease; white-space: nowrap; }
+  .rail a:hover { opacity: 1; }
+  .rail:hover .label { opacity: 1; }
+  .rail a.active { color: var(--fg); opacity: 1; }
+  .rail a.active .tick { width: 2.5rem; }
+  .rail a.active .label { opacity: 1; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 3.2rem 1.75rem 5rem; }
+  h1 { font-family: var(--sans); font-weight: 700; font-size: 2.6rem; line-height: 1.18; letter-spacing: normal; margin: 0 0 0.8rem; }
+  .dek { font-family: var(--sans); font-weight: 400; font-size: 1.4rem; line-height: 1.5; color: var(--muted); margin: 0 0 1.6rem; }
+  .meta { font-family: var(--sans); font-size: 0.98rem; color: var(--muted); margin: 0 0 1rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: 0.9rem; margin: 0 0 2.4rem; padding: 0; list-style: none; }
+  .tags li { font-family: var(--sans); font-size: 0.88rem; color: var(--muted); }
+  .tags li::before { content: "#"; opacity: 0.5; }
+  .divider { border: none; border-top: 1px solid var(--rule); margin: 0 0 2.6rem; }
+  h2 { font-family: var(--sans); font-weight: 700; font-size: 1.65rem; line-height: 1.3; letter-spacing: normal; margin: 3rem 0 0.8rem; scroll-margin-top: 2rem; }
+  p { margin: 0 0 1.5rem; }
+  article a { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--faint); }
+  article a:hover { text-decoration-color: var(--fg); }
+  blockquote { margin: 1.8rem 0; padding-inline-start: 1.3rem; border-inline-start: 3px solid var(--muted); color: var(--muted); font-style: normal; }
+  ul.body { margin: 0 0 1.5rem; padding-inline-start: 1.4rem; }
+  ul.body li { margin: 0 0 0.55rem; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.74em; background: var(--code-bg); padding: 0.12em 0.4em; border-radius: 4px;
+    direction: ltr; unicode-bidi: isolate;
+  }
+  .endrule { border: none; border-top: 1px solid var(--rule); margin: 3.2rem 0 1.6rem; }
+  .byline { font-family: var(--sans); color: var(--muted); font-size: 1.02rem; line-height: 1.6; }
+  .site-footer { border-top: 1px solid var(--rule); }
+  .site-footer-inner {
+    max-width: 920px; margin: 0 auto; padding: 2.2rem 1.75rem 3rem; font-family: var(--sans);
+    font-size: 0.92rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem;
+    align-items: center; justify-content: space-between;
+  }
+  .site-footer-inner a { color: var(--muted); text-decoration: none; }
+  .site-footer-inner a:hover { color: var(--fg); }
+  .footer-links { display: flex; gap: 1.4rem; flex-wrap: wrap; }
+  @media (min-width: 980px) { .rail { display: flex; } }
+  @media (max-width: 36rem) {
+    body { font-size: 1.2rem; } h1 { font-size: 2.05rem; } .dek { font-size: 1.2rem; }
+    .wrap { padding: 2.2rem 1.25rem 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-top" id="progressTop"></div>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="brand" href="https://dhkts1.github.io/blog/he/">גיל פורטנוי</a>
+    <nav class="nav">
+      <a class="lang" href="../" hreflang="en">EN</a>
+      <a href="https://github.com/dhkts1">GitHub</a>
+      <a href="https://github.com/dhkts1/blog">קוד מקור</a>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="החלפת ערכת נושא" title="החלפת ערכת נושא">
+        <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<nav class="rail" id="rail" aria-label="מקטעים">
+  <a href="#top"><span class="tick"></span><span class="label">התחלה</span></a>
+  <a href="#building"><span class="tick"></span><span class="label">מה בונים</span></a>
+  <a href="#rules"><span class="tick"></span><span class="label">הכללים</span></a>
+  <a href="#walls"><span class="tick"></span><span class="label">קירות</span></a>
+  <a href="#confidence"><span class="tick"></span><span class="label">ביטחון</span></a>
+  <a href="#beliefs"><span class="tick"></span><span class="label">אמונות</span></a>
+  <a href="#transfer"><span class="tick"></span><span class="label">העברה</span></a>
+  <a href="#rots"><span class="tick"></span><span class="label">ריקבון</span></a>
+  <a href="#findings"><span class="tick"></span><span class="label">ממצאים</span></a>
+  <a href="#should"><span class="tick"></span><span class="label">כדאי לכם?</span></a>
+</nav>
+
+<div class="wrap">
+<article>
+
+<h1>למה בניתי לעצמי סוכן קוד, ולמה אתם כנראה לא צריכים</h1>
+
+<p class="dek">המודל שכור, והוא משתפר מעצמו. החלק שאני בונה הוא החלק שאני יכול לקרוא, וזה התברר כחלק היחיד שאני יכול לתת בו אמון.</p>
+
+<p class="meta">גיל פורטנוי · 9 דקות קריאה</p>
+
+<ul class="tags">
+    <li>אבטחה</li>
+    <li>סוכני AI</li>
+    <li>כלים</li>
+</ul>
+
+<hr class="divider">
+
+<span id="top"></span>
+<p>בחודש שעבר כמעט שפרסמתי use-after-free שלא היה שם בכלל.</p>
+
+<p>בדקתי ניהול reference counting בדרייבר של מערכת קבצים, ומסלול אחד נראה כאילו הוא משחרר אובייקט ואז ניגש אליו שוב. use-after-free קלאסי מהספר. כבר הספקתי לכתוב חצי דוח. הכל נשען על בייט אחד, opcode שקראתי כ"release". העניין הוא שלא באמת קראתי אותו מהבינארי. קראתי אותו ממפה שמישהו אחר בנה (טבלה של ערכי opcode למשמעויות שלהם), והטבלה אמרה release.</p>
+
+<p>לקח בערך עשר שניות לבדוק את הבייט הזה מול הארטיפקט האמיתי. המשמעות שלו הייתה retain. האובייקט לא שוחרר בכלל, הוא נשמר בחיים, ולא היה שום באג. אחר צהריים שלם של עבודה נשען על מספר אחד שמעולם לא קרקעתי בעצמי.</p>
+
+<p>טעות כזאת לא מופיעה בבנצ'מרק. המודל שעבדתי איתו מצוין, וגם הוא לא היה תופס את זה, כי הוא בטח באותה מפה שאני בטחתי בה. הכשל לא היה חוסר אינטליגנציה. זה היה הרגל חסר: לקרקע את הפרימיטיב לפני שאתה מדרג את הטענה. תקרא את הבייט מהדבר שמולך, לא מטבלה שאולי הועתקה לא נכון איפשהו בדרך.</p>
+
+<p>אז כתבתי את זה. לא כפתק לעצמי שאאבד תוך שבוע, אלא ככלל שהסוכן שלי נושא איתו עכשיו, בקובץ שהוא קורא בתחילת כל סשן, ממש ליד התאריך והאירוע שיצרו אותו.</p>
+
+<p>הכלל האחד הזה הוא מה שכל הפוסט הזה עוסק בו.</p>
+
+<h2 id="building">מה אתם באמת בונים</h2>
+
+<p>"תבנה לעצמך סוכן" בדרך כלל מתכוון לאחד משני דברים. או לולאה של חמישים שורות סביב מודל עם כמה כלים מוברגים עליה, או system prompt מלא ב"אתה מהנדס בכיר שכותב קוד נקי". שניהם מפספסים את החלק שבאמת נצבר.</p>
+
+<p>המודל שכור. הוא לא שלי, ואני לא יכול לעקוף אותו בהנדסה. הוא משתפר מעצמו כל כמה חודשים בין אם אני עושה משהו ובין אם לא, אז כל מה שאני מקודד-קשיח מעל היכולת הגולמית הוא בעיקר משקל מת עד הגרסה הבאה. את זה למדתי בדרך הכי מילולית. הסוכן שלי רץ מ-cache שממופתח לפי גרסה, ובמשך כמה שעות פרסמתי תיקונים שעברו כל בדיקה ומעולם לא רצו בפועל, כי הבדיקות קראו את ה-source בזמן שה-runtime קרא עותק ישן. התיקון נמצא ב-source זה לא אותו משפט כמו התיקון רץ. (יש לי כלל גם לזה עכשיו.)</p>
+
+<p>אז אם היכולת היא החלק השכור, מה נשאר לבנות? התשובה שהגעתי אליה, אחרי בערך שנה של זה, צרה יותר והרבה פחות מרגשת מהפיץ'. החלק שאתה בונה הוא החלק שאתה יכול לקרוא.</p>
+
+<p>אני לא יכול לגרום לסוכן שלי להיות חכם יותר מהמודל שמתחתיו. מה שכן אני יכול לעשות זה להפוך אותו לקריא. אני יכול לגרום לכך שכשהוא עוצר ושואל אותי משהו, אני יודע למה הוא עצר. כשהוא מסרב לעשות משהו, אני יכול לפתוח את הקובץ ולראות את האירוע המדויק שלימד אותו לסרב. כשהוא אומר לי שממצא מוצק, אני יודע בדיוק מה "מוצק" היה צריך לעבור קודם. הקריאות הזאת היא הדבר היחיד בכל הסטאק שבאמת בבעלותי, והתברר שהיא הדבר היחיד שמאפשר לי באמת למסור לו עבודה וללכת.</p>
+
+<h2 id="rules">מאיפה הכללים מגיעים</h2>
+
+<p>הנה ההבדל בין קונפיגורציה לבין מה שאני מתאר.</p>
+
+<p>קונפיגורציה היא מה שאתה מנחש שתצטרך לפני שאתה מתחיל. אתה מתיישב, מדמיין את העבודה שלפניך, כותב "תמיד לוודא קלטים" ו"להעדיף הרכבה על ירושה", ומרגיש מאורגן. כלום מזה לא עלה לך כלום, וזו גם הבעיה איתו. זה ניחוש בלי מקור. חצי שנה אחרי אתה לא יכול לדעת אילו שורות נושאות משקל ואילו היו סתם מצב רוח של אותו אחר צהריים, כי אף אחת מהן לא קשורה לרגע שבו היא באמת הייתה חשובה.</p>
+
+<p>אירוע הוא ההפך. הוא כבר קרה, והוא כבר עלה לך משהו. הבייט שמשמעותו retain עלה לי אחר צהריים וממצא שהייתי מתבייש לשלוח. כשזה הופך לכלל, הכלל מגיע עם הקבלה מוצמדת אליו: התאריך, הסימפטום, המסקנה השגויה שהסקתי, ובדיקת השורה האחת שהייתה תופסת את זה. אני יכול לקרוא מחדש את הכלל הזה שנה אחר כך ולשפוט אותו מחדש, כי הראיות יושבות ממש שם לידו. קונפיגורציה מורידה את הקבלה ומשאירה לך את הסיסמה. אירוע שומר את הקבלה, כך שאתה יכול לבקר אותו אחר כך במקום לקחת אותו באמונה.</p>
+
+<p>קובץ הזהות המרכזי של הסוכן שלי הוא בעיקר זה. לא best practices שהועתקו מאיזה בלוג, אלא רשימה של דברים ספציפיים שהשתבשו בימים ספציפיים, כל אחד מהם הפך למשהו שהסוכן עושה אחרת עכשיו. זה נקרא פחות כמו מדריך סגנון ויותר כמו יומן שמנהל מישהו שכל הזמן עושה טעויות ומסרב לעשות את אותה אחת פעמיים.</p>
+
+<h2 id="walls">חלק מהכללים חייבים להיות קירות</h2>
+
+<p>רוב הכללים יכולים לחיות כטקסט שהסוכן קורא ופחות או יותר ממלא. חלק לא יכולים, ולהבין מי זה מי התברר כחלק המעניין.</p>
+
+<p>יש לי שישה-עשר תת-סוכנים מתמחים (reviewer, fuzzer, diagnostician, וכמה אחרים), כל אחד טוב יותר בעבודה הצרה שלו מהגנרליסט. במשך חודשים המשכתי להגיד לסוכן המוביל, באנגלית פשוטה, להשתמש במתמחה במקום בכלי הגנרי שתופס הכל. זה עבד אולי בחצי מהפעמים. התזכורת הייתה ממש שם בהוראות והיא דולגה בכל זאת, כי תחת עומס מודל מושיט יד לכלי הקרוב ביותר, והכלי הקרוב ביותר הוא תמיד הגנרי.</p>
+
+<p>אז הפסקתי להזכיר לו. כתבתי hook, בערך שישים שורות shell, שחוסם בקשיחות כל dispatch לסוכן הגנרי לחלוטין. השורה שכתבתי כדי להסביר למה היא כל הלקח:</p>
+
+<blockquote>כללים התנהגותיים ("זכור לבחור את המתמחה") נכשלים בערך בחצי מהפעמים. שער מכני מנצח תזכורת התנהגותית.</blockquote>
+
+<p>עכשיו המהלך השגוי פשוט מחזיר שגיאה ורשימה של הנכונים. יש override לחריג האמיתי הנדיר, ואתה צריך להקליד אותו בכוונה. השיפוט לא נהיה חכם יותר. פשוט העברתי אותו ממקום שהסוכן יכל להתעלם ממנו למקום שהוא לא יכול.</p>
+
+<p>יש מלכודת בצד השני של זה, ואותה נאלצתי ללמוד באותה דרך. השער חייב לבדוק עובדה, לא מילה. מפתה לכתוב שער שסורק את הפלט של הסוכן עצמו אחרי "PROVEN" או "אני בטוח" וחוסם על המילים המפחידות. זה תיאטרון. המודל פשוט מנסח מחדש מסביב לזה, ובנית פילטר שתופס כנות ומפספס את הבעיה האמיתית. שער מותר לו לבדוק נתיב, exit code, שדה חסר, איזשהו דבר אמיתי לגבי העולם. ברגע שהוא מתחיל לתת ציון לפרוזה, הוא כבר לא שער, הוא תחפושת. לדעת אילו מהכללים שלי ניתנים למיכון ואילו באמת לא זה רוב המיומנות.</p>
+
+<h2 id="confidence">כמה בטוח זה בטוח מספיק</h2>
+
+<p>הכלל שאני הכי קשור אליו התחיל כוויכוח עם עצמי, והוא המקרה הברור ביותר של הסוכן מאלץ אותי להגיד בקול רם משהו שנשאתי איתי לא-נאמר במשך שנים.</p>
+
+<p>לכל מהנדס יש חוגת ביטחון פנימית. אתה יודע את ההבדל בין "אני חושב שזה הבאג" לבין "זה הבאג, תשחרר". אתה פשוט אף פעם לא נאלץ לכתוב את החוגה, אז אתה אף פעם לא ממש שם לב כמה גרוע היא מכוילת.</p>
+
+<p>גרמתי לסוכן שלי לכתוב אותה. ממצאים נושאים עכשיו רמת ביטחון, מאחד עד חמש, עם שערים קשיחים בין הרמות. הכלל שהכי חשוב הוא שאתה לא יכול לתת ציון לשיעורי הבית של עצמך. אם הדבר היחיד שמאשר תיקון הוא טסט שכתבתי כדי להתאים לתיקון הזה, זה לא אישור, זאת מראה, וזה תקרה ברמה שתיים עד שמשהו שאני לא כתבתי מסכים איתו.</p>
+
+<p>לא המצאתי את זה באוויר. בניתי את זה יום אחרי שסוכן קוד אמר לי שתיקון הוא חמש מתוך חמש, "נמדד בסשן הזה", בטוח לחלוטין. הוא מדד אותו מול טסט שהוא עצמו כתב. הטסט עבר כי הוא נבנה כדי לעבור. התיקון היה שגוי. מכונת הביטחון ייצרה דיוק שהעבודה מעולם לא הרוויחה, והחלק שהכי הטריד אותי הוא שזה נשמע בטוח בעצמו יותר משאני אי פעם הייתי.</p>
+
+<p>הרמה היא לא קישוט. היא רוכבת על כל טענה, היא יורדת כשראיות סותרות אותה, והיא יכולה לטפס רק צעד אחד בכל פעם, על ראיות אמיתיות מבחוץ. כשהסוכן שלי מוסר לי משהו ברמה ארבע, אני יודע מה המספר הזה היה צריך לשרוד כדי להגיע לשם. כשהוא מוסר לי שתיים, אני יודע ללכת ולבדוק בעצמי. המספר הזה הוא הסוכן שהוא כנה בפורמט שאני באמת יכול לבדוק.</p>
+
+<h2 id="beliefs">בסוף אתה כותב את מה שאתה מאמין בו</h2>
+
+<p>יצאתי לבנות כלי. מה שקיבלתי, כתופעת לוואי, היה אינוונטר כפוי של השיפוט של עצמי.</p>
+
+<p>אתה לא יכול לכתוב "תשאל את האדם כשאתה מגיע לשער אמיתי" בלי לענות קודם מה נחשב לשער אמיתי. אתה לא יכול לכתוב "זה גמור" לתוך חוזה בלי להחליט קודם מה גמור אומר לך ספציפית, לא באופן כללי. נאלצתי להגדיר מתי הסוכן צריך לפעול בעצמו ומתי הוא צריך לעצור ולהעלות שאלה. נאלצתי להגדיר מה נחשב מספיק ראיות. כל אחד מאלה היה אמונה שפעלתי לפיה במשך עשור בלי אי פעם לנסח אותה, ולא מעט מהן התבררו כרכרוכיות יותר ממה שהייתי מודה לפני שנאלצתי להקליד אותן.</p>
+
+<p>הסוכן הוא מראה, והוא לא מראה מחמיאה. הוא מריץ בדיוק את מה שכתבת, כלומר בכל מקום שהשיפוט שלך היה מעורפל, ההתנהגות יוצאת מעורפלת, ואתה צריך ללכת ולתקן את האמונה במקום את ה-prompt. אני מהנדס טוב יותר בזכות זה שאולצתי לעשות את זה, בצורה שיש לה מעט מאוד קשר לסוכן עצמו. אם הייתי מוחק את כל הדבר מחר, הייתי שומר את מה שכתיבתו לימדה אותי על איך אני באמת מחליט דברים.</p>
+
+<h2 id="transfer">זה עובד רק כי זה לא עובר</h2>
+
+<p>כאן אני חולק על רוב מה שנכתב כרגע.</p>
+
+<p>התעשייה בריצה להפוך את זיכרון הסוכן למשותף. זיכרון צוות, זיכרון ארגון, מאגר ידע מאוחד שכל סוכן שואב ממנו, הלקחים שהחברה שלך הרוויחה בדם הופכים לנכס בר-קיימא. זה נשמע טוב באופן מובן מאליו. למקרה האישי, אני חושב שזה בדיוק הפוך.</p>
+
+<p>מה שהופך את הסוכן שלי לבעל ערך זה שהוא overfit אליי. הוא מכוון למקומות הספציפיים שבהם אני מקצר דרך, לבאגים הספציפיים שאני נוטה אליהם, לרף הספציפי שבמקרה אני מחזיק ל"גמור". תמסור אותו לך ורובו פשוט יהיה רעש, כי אתה לא עושה את הטעויות שלי, אתה עושה את שלך. אי-העבירות הזאת היא לא מגבלה שצריך להנדס לכדי היעלמות. היא כל העניין. סוכן אישי שמכליל בצורה נקייה לאנשים אחרים בשקט חזר להיות הכלי החציוני שניסית לברוח ממנו מלכתחילה. כל הסיבה לבנות את שלך היא לברוח מהממוצע, אז ברגע ששלך ניתן לשיתוף, איבדת את החוט.</p>
+
+<h2 id="rots">וזה נרקב</h2>
+
+<p>עוד דבר אחד שהפוסטים העליזים משמיטים. זאת לא מערכת שרק גדלה. היא מתפוררת, ולשמור עליה מלהירקב זה בערך חצי מהעבודה.</p>
+
+<p>כל כלל שאני מוסיף הוא הימור קטן על כך שמשהו ששרף אותי פעם אחת ישרוף אותי שוב, וחלק מההימורים האלה פשוט שגויים. כלל שנכתב בלהט של אירוע מוזר אחד מתברר כיורה על עשרה מקרים תמימים לחלוטין, ועכשיו לימדתי את הסוכן שלי אמונה תפלה. שער שהיה הגיוני במרץ יורה בטעות בשקט עד יוני כי הדבר ששמר עליו נבנה מחדש מתחתיו. הערה על איך מערכת חיצונית כלשהי מתנהגת מתיישנת ביום שאותה מערכת משחררת גרסה חדשה, ועכשיו הסוכן שלי מאמין בביטחון במשהו שכבר לא נכון.</p>
+
+<p>אז אני גוזם. אני מנהל ספריית בית-קברות של פיצ'רים שבניתי ואז הרגתי, כל אחד עם הערה קצרה על מה הוא היה, למה הרגתי אותו, ומה יגרום לי להחזיר אותו, בעיקר כדי שלא אבנה מחדש בעיוורון את אותו רעיון מת בעוד חצי שנה. בכל פעם שאני מוסיף לקח, אני מנסה לשאול את השאלה הקשה יותר לצדו: איזה לקח שגוי עכשיו, איזה כלל הפך לזבל, מה צריך לצאת. מאגר ידע שרק נצבר בסוף הופך לרעש, ורעש שנשמע כמו חוכמה גרוע יותר מאשר אין הערה בכלל, כי אתה בוטח בו. חיסור התברר ככלי אמיתי, ונאלצתי ללמוד להשתמש בו על הדבר שביליתי שנה בבנייתו.</p>
+
+<h2 id="findings">חלק ממה שזה באמת העלה</h2>
+
+<p>שום דבר מזה לא תיאורטי, וזה מרגיש שווה לומר, כי רוב הכתיבה על סוכנים נשארת בזהירות מופשטת. אותו משמעת שתיארתי, מכוונת לקוד אמיתי, העלתה תיקונים אמיתיים בתוכנה שאנשים באמת מריצים.</p>
+
+<p>הערימה הכי גדולה של זה היא בשרת ה-SMB של ליבת לינוקס, ksmbd. במהלך החודשים האחרונים זה הפך ליותר מתריסר תיקונים נפרדים, תשעה מהם כבר מוזגו לתוך הקרנל, כמה מהם use-after-free, כולם נגישים על ידי לקוח מחובר דרך הרשת. לשניים יש מספרי CVE עד כה, use-after-free בקוד נעילת הקבצים (CVE-2026-53198) וקריסה שניתן להפעיל מרחוק לידו (CVE-2026-53271), ושניהם הגיעו בקרנלים יציבים שכבר שוחררו. השאר מוזגו ומחכים למספרים משלהם, שהקרנל מחלק לפי לוח הזמנים שלו.</p>
+
+<p>אם אתם רוצים לבדוק משהו מזה, ה-commits שמוזגו ציבוריים:</p>
+
+<ul class="body">
+<li><code>f580d27e</code> — use-after-free ב-SMB2 lock cancel (CVE-2026-53198)</li>
+<li><code>b003086d</code> — NULL-deref ב-oplock break (CVE-2026-53271)</li>
+<li><code>7ce4fc40</code> — use-after-free ב-file reopen</li>
+<li><code>57179c8d</code> — use-after-free ב-close-then-cancel</li>
+<li><code>83c3c25c</code> — קריסה מרחוק מ-login חצי-גמור (ב-stable, CVE בהמתנה)</li>
+<li><code>6fd2f222</code>, <code>cdb67409</code>, <code>80edbadf</code>, <code>5b4cea18</code> — ארבע בדיקות הרשאה חסרות (אחת אפשרה ל-handle לקריאה-בלבד למחוק קבצים)</li>
+</ul>
+
+<p>יש עוד כמה ב-userspace. stack overflow ב-XML parser של CPython (CVE-2026-4224), ושלושה באגי memory-safety ב-PJSIP, ה-VoIP stack שהרבה טלפונים ומערכות שיחות בנויים עליו (CVE-2026-32942, CVE-2026-41416, CVE-2026-41415). הכל ציבורי, הכל מתוקן.</p>
+
+<p>כמה הם ב-FFmpeg, שזה הדבר שמפענח וידאו ואודיו כמעט בכל מקום שאתם יכולים לחשוב עליו. כמה באגי out-of-bounds במפענח הווידאו החדש יותר שלו ואחד במסלול האודיו, כולם מוזגו לפרויקט:</p>
+
+<ul class="body">
+<li><code>51606de0</code> ו-<code>26dd9f9b</code> — באגי זיכרון במפענח הווידאו H.266/VVC</li>
+<li><code>770bc1c2</code> ו-<code>e1d9080e</code> — באג out-of-bounds במפענח האודיו AAC</li>
+</ul>
+
+<p>אני מראה חלון קטן כי כל הטיעון כאן הוא שהערך של הסוכן מופיע כפלט אמיתי שאפשר ללכת ולוודא, לא כמספר על בנצ'מרק, וזה היה קצת מוגזם לטעון את הטענה הזאת ואז להראות אפס מהפלט.</p>
+
+<h2 id="should">אז כדאי לכם לבנות אחד</h2>
+
+<p>כנראה שלא, בכנות, ואני מעדיף להגיד את זה בפשטות מאשר למכור לכם משהו.</p>
+
+<p>זה עובד רק אם אתה מאכיל אותו, ולהאכיל אותו אומר לכתוב את החלקים הלא-מחמיאים, שוב ושוב, בעצם לנצח. הבייט שקראתי לא נכון. התיקון שהייתי בטוח לגביו ולא היה. התזכורת שהתעלמתי ממנה שלוש פעמים נפרדות בסשן אחד לפני שוויתרתי ובניתי קיר. אמון בדבר הזה נצבר בדיוק טעות אחת מתועדת בכל פעם, ורוב הרשומות האלה הן וידויים קטנים. אם אתה לא הולך לעשות את זה, אתה לא יוצא עם סוכן שאפשר לבטוח בו, אתה יוצא עם גנרי קצת יותר גרוע עטוף בטקסיות מיותרת, ובאמת היה עדיף לך לסגור את הטאב ולהשתמש במודל המוכן, שהוא מצוין ומשתפר בלי שום עזרה ממך.</p>
+
+<p>אבל אם כן תאכיל אותו, אתה מגיע למקום שבנצ'מרק לא ממש יכול למדוד. לא כלי חכם יותר, אלא כזה שאתה יכול למסור לו משימה אמיתית ולא לקרוא מחדש את התוצאה, כי ראית אותו נכשל בכל דרך שהוא יודע להיכשל בה, כתבת את השער לכל אחת מהן, ואתה יכול לפתוח את הקובץ ולראות למה הוא יעצור לפני שהוא יעשה את הדבר הטיפשי.</p>
+
+<p>הבדיקה שאני משתמש בה בשבילו פשוטה. האם אני יכול לתת לו עבודה ולא לבדוק את העבודה? בחלק מהימים, כן. בימים שהתשובה היא לא, בדרך כלל יש שורה חדשה ביומן עד הערב, עם התאריך עליה.</p>
+
+<hr class="endrule">
+
+<p class="byline">נכתב על ידי גיל והנרי. הנרי הוא הסוכן שכל הפוסט הזה מדבר עליו. (כן, הוא עזר לכתוב את הבלוג של עצמו.)</p>
+
+</article>
+</div>
+
+<footer class="site-footer">
+  <div class="site-footer-inner">
+    <span>© 2026 גיל פורטנוי</span>
+    <span class="footer-links">
+      <a href="../" hreflang="en">English</a>
+      <a href="https://github.com/dhkts1">github.com/dhkts1</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+  document.getElementById("themeToggle").addEventListener("click", function () {
+    var root = document.documentElement;
+    var attr = root.getAttribute("data-theme");
+    var systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var isDark = attr ? attr === "dark" : systemDark;
+    var next = isDark ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch (e) {}
+  });
+  var bar = document.getElementById("progressTop");
+  function onScroll() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + "%";
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+  var railLinks = Array.prototype.slice.call(document.querySelectorAll(".rail a"));
+  var targets = railLinks.map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); }).filter(Boolean);
+  function setActive(id) { railLinks.forEach(function (a) { a.classList.toggle("active", a.getAttribute("href").slice(1) === id); }); }
+  if ("IntersectionObserver" in window) {
+    var visible = {};
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { visible[e.target.id] = e.isIntersecting; });
+      for (var i = 0; i < targets.length; i++) { if (visible[targets[i].id]) { setActive(targets[i].id); return; } }
+    }, { rootMargin: "-15% 0px -70% 0px", threshold: 0 });
+    targets.forEach(function (t) { obs.observe(t); });
+  }
+</script>
+
+</body>
+</html>

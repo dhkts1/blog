@@ -82,6 +82,7 @@
   .nav { display: flex; align-items: center; gap: 1.25rem; }
   .nav a { font-size: 0.95rem; color: var(--muted); text-decoration: none; }
   .nav a:hover { color: var(--fg); }
+  .nav .lang { border: 1px solid var(--rule); border-radius: 999px; padding: 0.18rem 0.6rem; }
   .theme-toggle {
     width: 2.2rem; height: 2.2rem;
     display: inline-flex; align-items: center; justify-content: center;
@@ -192,6 +193,7 @@
   <div class="site-header-inner">
     <a class="brand" href="https://dhkts1.github.io/blog/">Gil Portnoy</a>
     <nav class="nav">
+      <a class="lang" href="he/" hreflang="he">עברית</a>
       <a href="https://github.com/dhkts1">GitHub</a>
       <a href="https://github.com/dhkts1/blog">Source</a>
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme" title="Toggle theme">
