@@ -12,8 +12,6 @@
 <meta property="og:url" content="https://dhkts1.github.io/blog/">
 <meta name="twitter:card" content="summary">
 <script>
-  // Apply saved theme before first paint so there's no flash.
-  // No saved choice => fall through to the prefers-color-scheme CSS (system default).
   (function () {
     try {
       var t = localStorage.getItem("theme");
@@ -25,89 +23,70 @@
 </script>
 <style>
   :root {
-    --page: #f4f1ea;
-    --card: #fffdf9;
-    --fg: #2a2723;
-    --muted: #6f6a62;
-    --rule: #e7e2d7;
-    --code-bg: #f0ece3;
-    --tag-bg: #ece7dc;
-    --shadow: 0 1px 2px rgba(40,34,24,.05), 0 12px 32px rgba(40,34,24,.06);
+    --bg: #faf8f3;
+    --fg: #242424;
+    --muted: #6e6a62;
+    --faint: #b6b0a4;
+    --rule: #e7e2d6;
+    --code-bg: #efeae0;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    --serif: Georgia, Charter, "Times New Roman", serif;
+    --serif: Charter, Georgia, Cambria, "Times New Roman", serif;
   }
   :root[data-theme="dark"] {
-    --page: #111114;
-    --card: #1b1b1f;
+    --bg: #15151a;
     --fg: #e9e6e0;
     --muted: #9f9a91;
-    --rule: #2e2e34;
-    --code-bg: #25252b;
-    --tag-bg: #26262c;
-    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 14px 36px rgba(0,0,0,.36);
+    --faint: #54515b;
+    --rule: #2c2c33;
+    --code-bg: #24242b;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --page: #111114;
-      --card: #1b1b1f;
+      --bg: #15151a;
       --fg: #e9e6e0;
       --muted: #9f9a91;
-      --rule: #2e2e34;
-      --code-bg: #25252b;
-      --tag-bg: #26262c;
-      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 14px 36px rgba(0,0,0,.36);
+      --faint: #54515b;
+      --rule: #2c2c33;
+      --code-bg: #24242b;
     }
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   body {
     margin: 0;
-    background: var(--page);
+    background: var(--bg);
     color: var(--fg);
     font-family: var(--serif);
-    font-size: 1.28rem;
-    line-height: 1.62;
+    font-size: 1.32rem;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
-  /* top bar */
-  .site-header {
-    border-bottom: 1px solid var(--rule);
-    background: var(--page);
+  /* top progress bar */
+  .progress-top {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0%;
+    background: var(--fg); opacity: 0.55; z-index: 60;
+    transition: width 0.08s linear;
   }
+
+  /* header */
+  .site-header { border-bottom: 1px solid var(--rule); }
   .site-header-inner {
-    max-width: 1040px;
-    margin: 0 auto;
-    padding: 1.1rem 1.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+    max-width: 920px; margin: 0 auto;
+    padding: 1.15rem 1.75rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
     font-family: var(--sans);
   }
-  .brand {
-    font-weight: 700;
-    font-size: 1.02rem;
-    letter-spacing: -0.01em;
-    color: var(--fg);
-    text-decoration: none;
-  }
+  .brand { font-weight: 700; font-size: 1.02rem; letter-spacing: -0.01em; color: var(--fg); text-decoration: none; }
   .nav { display: flex; align-items: center; gap: 1.25rem; }
-  .nav a {
-    font-size: 0.95rem;
-    color: var(--muted);
-    text-decoration: none;
-  }
+  .nav a { font-size: 0.95rem; color: var(--muted); text-decoration: none; }
   .nav a:hover { color: var(--fg); }
   .theme-toggle {
     width: 2.2rem; height: 2.2rem;
     display: inline-flex; align-items: center; justify-content: center;
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    cursor: pointer;
+    background: transparent; color: var(--muted);
+    border: 1px solid var(--rule); border-radius: 999px; cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: color .15s ease, border-color .15s ease;
   }
@@ -122,115 +101,92 @@
     :root:not([data-theme="light"]) .icon-moon { display: none; }
   }
 
-  /* article card */
-  .wrap { max-width: 1040px; margin: 0 auto; padding: 2.5rem 1.75rem 4rem; }
-  article {
-    background: var(--card);
-    border: 1px solid var(--rule);
-    border-radius: 14px;
-    box-shadow: var(--shadow);
-    padding: 3.4rem clamp(1.4rem, 5vw, 3.4rem);
+  /* side reading rail */
+  .rail {
+    position: fixed; top: 50%; left: 2.2rem; transform: translateY(-50%);
+    display: none; flex-direction: column; gap: 0.05rem;
+    font-family: var(--sans); z-index: 40;
   }
+  .rail a {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.28rem 0; text-decoration: none; color: var(--faint);
+    transition: color .15s ease;
+  }
+  .rail .tick {
+    width: 1.5rem; height: 2px; background: currentColor; border-radius: 2px;
+    flex: none; transition: width .18s ease, background .15s ease;
+  }
+  .rail .label {
+    font-size: 0.78rem; letter-spacing: 0.01em;
+    opacity: 0; transform: translateX(-4px);
+    transition: opacity .18s ease, transform .18s ease; white-space: nowrap;
+  }
+  .rail a:hover { color: var(--muted); }
+  .rail:hover .label { opacity: 1; transform: none; }
+  .rail a.active { color: var(--fg); }
+  .rail a.active .tick { width: 2.5rem; }
+  .rail a.active .label { opacity: 1; transform: none; }
 
+  /* article */
+  .wrap { max-width: 920px; margin: 0 auto; padding: 3.2rem 1.75rem 5rem; }
   h1 {
-    font-family: var(--sans);
-    font-weight: 700;
-    font-size: 2.4rem;
-    line-height: 1.16;
-    letter-spacing: -0.022em;
-    margin: 0 0 0.7rem;
+    font-family: var(--sans); font-weight: 700;
+    font-size: 2.7rem; line-height: 1.14; letter-spacing: -0.024em;
+    margin: 0 0 0.8rem;
   }
   .dek {
-    font-family: var(--sans);
-    font-weight: 400;
-    font-size: 1.3rem;
-    line-height: 1.4;
-    color: var(--muted);
-    margin: 0 0 1.6rem;
+    font-family: var(--sans); font-weight: 400;
+    font-size: 1.35rem; line-height: 1.4; color: var(--muted); margin: 0 0 1.6rem;
   }
-  .meta {
-    font-family: var(--sans);
-    font-size: 0.95rem;
-    color: var(--muted);
-    margin: 0 0 1rem;
-  }
-  .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0 0 2.4rem; padding: 0; list-style: none; }
-  .tags li {
-    font-family: var(--sans);
-    font-size: 0.8rem;
-    color: var(--muted);
-    background: var(--tag-bg);
-    padding: 0.22rem 0.7rem;
-    border-radius: 999px;
-  }
-  .divider { border: none; border-top: 1px solid var(--rule); margin: 0 0 2.4rem; }
-
+  .meta { font-family: var(--sans); font-size: 0.95rem; color: var(--muted); margin: 0 0 1rem; }
+  .tags { display: flex; flex-wrap: wrap; gap: 0.9rem; margin: 0 0 2.4rem; padding: 0; list-style: none; }
+  .tags li { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); }
+  .tags li::before { content: "#"; opacity: 0.5; }
+  .divider { border: none; border-top: 1px solid var(--rule); margin: 0 0 2.6rem; }
   h2 {
-    font-family: var(--sans);
-    font-weight: 700;
-    font-size: 1.45rem;
-    line-height: 1.25;
-    letter-spacing: -0.012em;
-    margin: 2.8rem 0 0.7rem;
+    font-family: var(--sans); font-weight: 700;
+    font-size: 1.6rem; line-height: 1.25; letter-spacing: -0.014em;
+    margin: 3rem 0 0.8rem; scroll-margin-top: 2rem;
   }
-  p { margin: 0 0 1.4rem; }
-  article a {
-    color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    text-decoration-color: var(--muted);
-  }
+  p { margin: 0 0 1.5rem; }
+  article a { color: inherit; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--faint); }
+  article a:hover { text-decoration-color: var(--fg); }
   blockquote {
-    margin: 1.7rem 0;
-    padding: 0.1rem 0 0.1rem 1.2rem;
-    border-left: 3px solid var(--muted);
-    color: var(--muted);
-    font-style: italic;
+    margin: 1.8rem 0; padding: 0.1rem 0 0.1rem 1.3rem;
+    border-left: 3px solid var(--muted); color: var(--muted); font-style: italic;
   }
-  ul.body { margin: 0 0 1.4rem; padding-left: 1.4rem; }
-  ul.body li { margin: 0 0 0.5rem; }
+  ul.body { margin: 0 0 1.5rem; padding-left: 1.4rem; }
+  ul.body li { margin: 0 0 0.55rem; }
   code {
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-    font-size: 0.8em;
-    background: var(--code-bg);
-    padding: 0.12em 0.4em;
-    border-radius: 4px;
+    font-size: 0.78em; background: var(--code-bg); padding: 0.12em 0.4em; border-radius: 4px;
   }
-  .endrule { border: none; border-top: 1px solid var(--rule); margin: 3rem 0 1.6rem; }
+  .endrule { border: none; border-top: 1px solid var(--rule); margin: 3.2rem 0 1.6rem; }
   .byline { font-family: var(--sans); color: var(--muted); font-size: 1rem; line-height: 1.5; }
 
   /* footer */
-  .site-footer {
-    border-top: 1px solid var(--rule);
-    background: var(--page);
-  }
+  .site-footer { border-top: 1px solid var(--rule); }
   .site-footer-inner {
-    max-width: 1040px;
-    margin: 0 auto;
-    padding: 2.2rem 1.75rem 3rem;
-    font-family: var(--sans);
-    font-size: 0.9rem;
-    color: var(--muted);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem 1.4rem;
-    align-items: center;
-    justify-content: space-between;
+    max-width: 920px; margin: 0 auto; padding: 2.2rem 1.75rem 3rem;
+    font-family: var(--sans); font-size: 0.9rem; color: var(--muted);
+    display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; align-items: center; justify-content: space-between;
   }
   .site-footer-inner a { color: var(--muted); text-decoration: none; }
   .site-footer-inner a:hover { color: var(--fg); }
   .footer-links { display: flex; gap: 1.4rem; flex-wrap: wrap; }
 
+  @media (min-width: 1240px) { .rail { display: flex; } }
   @media (max-width: 36rem) {
-    body { font-size: 1.15rem; }
-    h1 { font-size: 1.95rem; }
-    .dek { font-size: 1.15rem; }
-    article { padding: 2rem 1.3rem; border-radius: 10px; }
-    .wrap { padding: 1.5rem 1rem 3rem; }
+    body { font-size: 1.18rem; }
+    h1 { font-size: 2.05rem; }
+    .dek { font-size: 1.18rem; }
+    .wrap { padding: 2.2rem 1.25rem 4rem; }
   }
 </style>
 </head>
 <body>
+
+<div class="progress-top" id="progressTop"></div>
 
 <header class="site-header">
   <div class="site-header-inner">
@@ -246,9 +202,23 @@
   </div>
 </header>
 
+<nav class="rail" id="rail" aria-label="Sections">
+  <a href="#top"><span class="tick"></span><span class="label">Start</span></a>
+  <a href="#building"><span class="tick"></span><span class="label">What you build</span></a>
+  <a href="#rules"><span class="tick"></span><span class="label">The rules</span></a>
+  <a href="#walls"><span class="tick"></span><span class="label">Walls</span></a>
+  <a href="#confidence"><span class="tick"></span><span class="label">Confidence</span></a>
+  <a href="#beliefs"><span class="tick"></span><span class="label">Beliefs</span></a>
+  <a href="#transfer"><span class="tick"></span><span class="label">Transfer</span></a>
+  <a href="#rots"><span class="tick"></span><span class="label">Decay</span></a>
+  <a href="#findings"><span class="tick"></span><span class="label">Findings</span></a>
+  <a href="#should"><span class="tick"></span><span class="label">Should you?</span></a>
+</nav>
+
 <div class="wrap">
 <article>
 
+<span id="top"></span>
 <h1>Why I built my own coding agent, and why you probably shouldn't</h1>
 
 <p class="dek">The model is rented and it gets better on its own. The part I build is the part I can read, and that turned out to be the only part I can trust.</p>
@@ -275,7 +245,7 @@
 
 <p>That one rule is what this whole post is about.</p>
 
-<h2>What you're actually building</h2>
+<h2 id="building">What you're actually building</h2>
 
 <p>"Build your own agent" usually means one of two things. Either a fifty-line loop around a model with a few tools bolted on, or a system prompt full of "you are a senior engineer who writes clean code." Both of them miss the part that actually compounds.</p>
 
@@ -285,7 +255,7 @@
 
 <p>I can't make my agent smarter than the model underneath it. What I can do is make it legible. I can make it so that when it stops and asks me something, I know why it stopped. When it refuses to do something, I can open the file and see the exact incident that taught it to refuse. When it tells me a finding is solid, I know precisely what "solid" had to clear first. That legibility is the only thing on the whole stack that I own outright, and it turns out to be the only thing that lets me actually hand it work and walk away.</p>
 
-<h2>Where the rules come from</h2>
+<h2 id="rules">Where the rules come from</h2>
 
 <p>Here's the difference between configuration and what I'm describing.</p>
 
@@ -295,7 +265,7 @@
 
 <p>My agent's core identity file is mostly this. Not best practices copied off a blog, but a list of specific things that went wrong on specific days, each one turned into something the agent does differently now. It reads less like a style guide and more like a logbook kept by someone who keeps making mistakes and refuses to make the same one twice.</p>
 
-<h2>Some rules have to be walls</h2>
+<h2 id="walls">Some rules have to be walls</h2>
 
 <p>Most rules can live as text the agent reads and mostly follows. Some can't, and figuring out which is which turned out to be the interesting part.</p>
 
@@ -309,7 +279,7 @@
 
 <p>There's a trap on the other side of this, though, and I had to learn it the same way. The gate has to check a fact, not a word. It's tempting to write a gate that scans the agent's own output for "PROVEN" or "I'm confident" and blocks on the scary words. That's theater. The model just rephrases around it, and you've built a filter that catches honesty and misses the actual problem. A gate is allowed to check a path, an exit code, a missing field, some real thing about the world. The moment it starts grading prose, it isn't a gate anymore, it's a costume. Knowing which of my own rules can be mechanized and which genuinely can't is most of the skill.</p>
 
-<h2>How confident is confident enough</h2>
+<h2 id="confidence">How confident is confident enough</h2>
 
 <p>The rule I'm most attached to started as an argument with myself, and it's the clearest case of the agent making me say out loud something I'd carried around unspoken for years.</p>
 
@@ -321,7 +291,7 @@
 
 <p>The level isn't decoration. It rides on every claim, it drops when evidence contradicts it, and it can only climb one step at a time, on real outside evidence. When my agent hands me something at level four, I know what that number had to survive to get there. When it hands me a two, I know to go and look myself. That number is the agent being honest in a format I can actually check.</p>
 
-<h2>You end up writing down what you believe</h2>
+<h2 id="beliefs">You end up writing down what you believe</h2>
 
 <p>I set out to build a tool. What I got, as a side effect, was a forced inventory of my own judgment.</p>
 
@@ -329,7 +299,7 @@
 
 <p>The agent is a mirror, and it isn't a flattering one. It runs exactly what you wrote, which means every place your judgment was vague, the behavior comes out vague, and you have to go and fix the belief rather than the prompt. I'm a better engineer for having been made to do that, in a way that has very little to do with the agent itself. If I deleted the whole thing tomorrow, I'd keep what writing it taught me about how I actually decide things.</p>
 
-<h2>It only works because it doesn't transfer</h2>
+<h2 id="transfer">It only works because it doesn't transfer</h2>
 
 <p>This is where I disagree with most of what's being written right now.</p>
 
@@ -337,7 +307,7 @@
 
 <p>What makes my agent valuable is that it's overfit to me. It's tuned to the specific places where I cut corners, the specific bugs I'm prone to, the specific bar I happen to hold for "done." Hand it to you and most of it would just be noise, because you don't make my mistakes, you make your own. That non-transferability isn't a limitation to engineer away. It's the whole point. A personal agent that generalizes cleanly to other people has quietly turned back into the median tool you were trying to get away from in the first place. The entire reason to build your own is to escape the average, so the moment yours is shareable, you've lost the thread.</p>
 
-<h2>And it rots</h2>
+<h2 id="rots">And it rots</h2>
 
 <p>One more thing the cheerful posts leave out. This isn't a system that only grows. It decays, and keeping it from rotting is about half the work.</p>
 
@@ -345,7 +315,7 @@
 
 <p>So I prune. I keep a graveyard directory of features I built and then killed, each one with a short note on what it was, why I killed it, and what would make me bring it back, mostly so I don't blindly rebuild the same dead idea in six months. Every time I add a lesson, I try to ask the harder question alongside it: which lesson is wrong now, which rule has turned into cruft, what should come out. A knowledge base that only ever accretes eventually turns into noise, and noise that sounds like wisdom is worse than no note at all, because you trust it. Subtraction turned out to be a real tool, and I had to learn to use it on the thing I'd spent a year building.</p>
 
-<h2>Some of what this has actually turned up</h2>
+<h2 id="findings">Some of what this has actually turned up</h2>
 
 <p>None of this is theoretical, which feels worth saying, because most writing about agents stays carefully abstract. The same discipline I've been describing, pointed at real code, has turned up real fixes in software people actually run.</p>
 
@@ -373,7 +343,7 @@
 
 <p>I'm showing a small window because the whole argument here is that the agent's value shows up as real output you can go and verify, not as a number on a benchmark, and it would be a bit much to make that case and then show none of the output.</p>
 
-<h2>So should you build one</h2>
+<h2 id="should">So should you build one</h2>
 
 <p>Probably not, honestly, and I'd rather say that plainly than sell you something.</p>
 
@@ -401,6 +371,7 @@
 </footer>
 
 <script>
+  // theme toggle
   document.getElementById("themeToggle").addEventListener("click", function () {
     var root = document.documentElement;
     var attr = root.getAttribute("data-theme");
@@ -410,6 +381,45 @@
     root.setAttribute("data-theme", next);
     try { localStorage.setItem("theme", next); } catch (e) {}
   });
+
+  // top progress bar
+  var bar = document.getElementById("progressTop");
+  function onScroll() {
+    var h = document.documentElement;
+    var max = h.scrollHeight - h.clientHeight;
+    var pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+    bar.style.width = pct + "%";
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // side rail active-section highlight
+  var railLinks = Array.prototype.slice.call(document.querySelectorAll(".rail a"));
+  var byId = {};
+  railLinks.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+  var targets = railLinks
+    .map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); })
+    .filter(Boolean);
+
+  function setActive(id) {
+    railLinks.forEach(function (a) {
+      a.classList.toggle("active", a.getAttribute("href").slice(1) === id);
+    });
+  }
+
+  if ("IntersectionObserver" in window) {
+    var visible = {};
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        visible[e.target.id] = e.isIntersecting;
+      });
+      // pick the topmost visible section
+      for (var i = 0; i < targets.length; i++) {
+        if (visible[targets[i].id]) { setActive(targets[i].id); return; }
+      }
+    }, { rootMargin: "-15% 0px -70% 0px", threshold: 0 });
+    targets.forEach(function (t) { obs.observe(t); });
+  }
 </script>
 
 </body>
